@@ -35,7 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 class ScoreSubmit(BaseModel):
     username: str
     score: int
