@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Spark | Pro Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { 
+            --bg-color: #0b0f19; --primary: #8b5cf6; --primary-glow: rgba(139, 92, 246, 0.5);
+            --accent: #fbbf24; --accent-glow: rgba(251, 191, 36, 0.5); --text-main: #f8fafc; --panel-bg: rgba(15, 23, 42, 0.75);
+        }
+        [data-theme="light"] {
+            --bg-color: #f1f5f9; --primary: #7c3aed; --primary-glow: rgba(124, 58, 237, 0.3);
+            --accent: #d97706; --accent-glow: rgba(217, 119, 6, 0.3); --text-main: #0f172a; --panel-bg: rgba(255, 255, 255, 0.85);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        html { scroll-behavior: smooth; }
+        body { 
+            background: linear-gradient(-45deg, var(--bg-color), #1e1b4b, #0f172a, #2e1065);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: var(--text-main); min-height: 100vh; overflow-x: hidden;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .glow-orb { position: fixed; border-radius: 50%; filter: blur(100px); z-index: 0; pointer-events: none; }
+        .orb-1 { width: 300px; height: 300px; background: var(--primary-glow); top: 10%; left: 10%; }
+        .orb-2 { width: 400px; height: 400px; background: rgba(56, 189, 248, 0.2); bottom: 10%; right: 10%; }
+
+        /* شاشة تسجيل الدخول */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(20px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .login-card {
+            background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 40px; border-radius: 24px; text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        }
+        .login-card h2 { color: var(--accent); margin-bottom: 10px; font-size: 2rem; }
+        .login-card p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 25px; }
+        .login-card input {
+            width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; border-radius: 12px; font-size: 1rem; text-align: center; outline: none; margin-bottom: 20px;
+        }
+        .login-card input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        .login-card button {
+            width: 100%; background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
+        }
+        .login-card button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        #main-app { display: none; }
+
+        .main-wrapper { position: relative; z-index: 10; }
+        header { 
+            display: flex; justify-content: space-between; align-items: center; padding: 18px 5%; 
+            background: rgba(11, 15, 25, 0.7); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 1.6rem; font-weight: 800; color: #fff; }
+        .logo span { color: var(--accent); }
+        
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a, .nav-links button.link-btn { 
+            color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 0.95rem; 
+            background: none; border: none; cursor: pointer; position: relative; padding-bottom: 4px;
+        }
+        .nav-links a:hover, .nav-links button.link-btn:hover, .nav-links a.active { 
+            color: var(--accent); text-shadow: 0 0 10px var(--accent-glow);
+        }
+        .nav-links a.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* تنسيق شارة المستخدم الصغيرة في شريط المهام */
+        .user-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255, 255, 255, 0.05); padding: 5px 12px;
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem; font-weight: 600; color: var(--accent);
+        }
+
+        .theme-btn, .youtube-btn, .logout-btn { padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; text-decoration: none; border: none; cursor: pointer; }
+        .theme-btn { background: rgba(255,255,255,0.1); color: var(--text-main); }
+        .logout-btn { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .logout-btn:hover { background: #ef4444; color: #fff; }
+        .youtube-btn { background: rgba(255, 0, 0, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.4); }
+        .youtube-btn:hover { background: #ff0000; color: white; }
+
+        .hero { text-align: center; padding: 35px 20px 15px; }
+        .hero h1 { font-size: 3rem; font-weight: 800; color: #ffffff; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1rem; color: #cbd5e1; }
+        .owl-svg { width: 90px; height: 90px; margin-bottom: 8px; filter: drop-shadow(0 0 12px var(--accent-glow)); }
+
+        .stats-container { display: flex; justify-content: center; gap: 15px; max-width: 650px; margin: 0 auto 25px; padding: 0 15px; }
+        .stat-card { flex: 1; background: var(--panel-bg); backdrop-filter: blur(10px); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .stat-card h4 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
+        .stat-card p { font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-top: 5px; }
+
+        .glass-panel {
+            max-width: 650px; margin: 0 auto 30px; background: var(--panel-bg); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;
+        }
+        .glass-panel h2 { color: var(--accent); font-size: 1.5rem; margin-bottom: 12px; }
+
+        .timer-container { font-size: 1.2rem; font-weight: 600; color: #f87171; margin-bottom: 12px; }
+        #riddle-text { font-size: 1.15rem; line-height: 1.5; color: var(--text-main); margin-bottom: 20px; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 14px; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .option-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
+        .option-btn.correct { background: #22c55e !important; border-color: #22c55e !important; }
+        .option-btn.wrong { background: #ef4444 !important; border-color: #ef4444 !important; }
+
+        .submit-box input, .submit-box textarea { 
+            width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; 
+            border: 1px solid rgba(255, 255, 255, 0.15); outline: none; font-size: 1rem; color: #fff; text-align: center; margin-bottom: 10px;
+        }
+        .submit-box textarea { text-align: left; resize: none; height: 80px; }
+        
+        .btn-main { background: linear-gradient(135deg, var(--primary), #6d28d9); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 0.9rem; }
+
+        #leaderboard-list { list-style: none; padding: 0; margin-top: 12px; }
+        #leaderboard-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95rem; }
+        .rank { font-weight: 800; }
+        .score { font-weight: 600; color: var(--accent); }
+    </style>
+</head>
+<body onload="checkAutoLogin()">
+
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2>Mind Spark</h2>
+            <p>Enter your username to start your logic journey</p>
+            <input type="text" id="login-username" placeholder="Your Username...">
+            <button onclick="handleLogin()">Start Playing 🚀</button>
+        </div>
+    </div>
+
+    <div id="main-app" class="main-wrapper">
+        <header>
+            <div class="logo">Mind <span>Spark</span></div>
+            <div class="nav-links">
+                <a href="#" id="nav-home" class="active" onclick="setActive('home')">Home</a>
+                <a href="#riddle-section" id="nav-challenges" onclick="setActive('challenges')">Challenges</a>
+                <button class="link-btn" onclick="fetchSpeedRun()">⚡ SpeedRun</button>
+                <button class="link-btn" onclick="fetchRandomRiddle()">🎲 Random</button>
+                <div class="user-badge">👤 <span id="user-display"></span></div>
+                <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                <a href="https://www.youtube.com/channel/UCuYDFIBxxCAq5Ly0nxFzFrg" target="_blank" class="youtube-btn">▶ YouTube</a>
+            </div>
+        </header>
+
+        <section id="home-section" class="hero">
+            <svg class="owl-svg" id="owl-mascot" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 20L10 8L24 14C26.5 13.3 29.2 13 32 13C34.8 13 37.5 13.3 40 14L54 8L48 20C51.8 24.5 54 30.5 54 37C54 49.2 44.2 56 32 56C19.8 56 10 49.2 10 37C10 30.5 12.2 24.5 16 20Z" fill="#1e1b4b" stroke="#fbbf24" stroke-width="3" stroke-linejoin="round"/>
+                <circle cx="23" cy="30" r="7" fill="#0b0f19" stroke="#fbbf24" stroke-width="3"/>
+                <circle cx="41" cy="30" r="7" fill="#0b0f19" stroke="#fbbf24" stroke-width="3"/>
+                <circle id="left-pupil" cx="23" cy="30" r="2.5" fill="#fbbf24"/>
+                <circle id="right-pupil" cx="41" cy="30" r="2.5" fill="#fbbf24"/>
+                <path d="M29 36L32 42L35 36H29Z" fill="#fbbf24"/>
+                <path d="M22 46C25 49 39 49 42 46" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <h1>Mind Spark</h1>
+            <p>Multiple Choice Logic Platform</p>
+        </section>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <h4>🔥 Streak</h4>
+                <p id="stat-streak">0 Days</p>
+            </div>
+            <div class="stat-card">
+                <h4>My Best Score</h4>
+                <p id="stat-my-score">0 pts</p>
+            </div>
+            <div class="stat-card">
+                <h4>Accuracy</h4>
+                <p id="stat-accuracy">95.4%</p>
+            </div>
+        </div>
+
+        <section id="riddle-section" class="glass-panel">
+            <h2 id="section-title">Riddle of the Day</h2>
+            <div class="timer-container">Time Left: <span id="time-display">15</span>s</div>
+            <p id="riddle-text">Loading challenge... ⏳</p>
+            
+            <div class="options-grid" id="options-container"></div>
+
+            <button class="btn-secondary" onclick="loadDailyRiddle()">Reset Challenge</button>
+        </section>
+
+        <section class="glass-panel">
+            <h2>📬 Submit Your Riddle</h2>
+            <div class="submit-box">
+                <input type="text" id="creator-input" placeholder="Your Name / Handle" disabled>
+                <textarea id="new-question" placeholder="Write your riddle here..."></textarea>
+                <input type="text" id="new-answer" placeholder="Expected Answer">
+                <button class="btn-main" onclick="submitUserRiddle()" style="width: 100%; margin-top: 5px;">Publish Riddle</button>
+            </div>
+        </section>
+
+        <section class="glass-panel">
+            <h2>🏆 Global Leaderboard</h2>
+            <ul id="leaderboard-list">
+                <li style="justify-content: center;">Loading leaderboard...</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        let currentUser = "";
+        let timeLeft = 15;
+        let timerInterval = null;
+        let isAnswered = false;
+        let currentCorrectAnswer = "";
+        let speedRunQueue = [];
+        let speedRunScoreTotal = 0;
+
+        function checkAutoLogin() {
+            const savedTheme = localStorage.getItem('spark_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+
+            const savedUser = localStorage.getItem('spark_current_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                startPlatform();
+            }
+        }
+
+        function handleLogin() {
+            const usernameInput = document.getElementById('login-username').value.trim();
+            if (!usernameInput) {
+                alert("Please enter a valid username!");
+                return;
+            }
+            currentUser = usernameInput;
+            localStorage.setItem('spark_current_user', currentUser);
+            startPlatform();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('spark_current_user');
+            location.reload();
+        }
+
+        function startPlatform() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('user-display').innerText = currentUser;
+            document.getElementById('creator-input').value = currentUser;
+
+            checkStreak();
+            loadDailyRiddle();
+            loadLeaderboard();
+            loadUserStats();
+            initEyeTracking();
+            initScrollSpy();
+        }
+
+        function setActive(type) {
+            document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+            if(type === 'home') {
+                document.getElementById('nav-home').classList.add('active');
+            } else if(type === 'challenges') {
+                document.getElementById('nav-challenges').classList.add('active');
+            }
+        }
+
+        function initScrollSpy() {
+            const riddleSec = document.getElementById('riddle-section');
+            window.addEventListener('scroll', () => {
+                let scrollPos = window.scrollY;
+                if (scrollPos < riddleSec.offsetTop - 200) {
+                    setActive('home');
+                } else {
+                    setActive('challenges');
+                }
+            });
+        }
+
+        function initEyeTracking() {
+            const owl = document.getElementById('owl-mascot');
+            const leftPupil = document.getElementById('left-pupil');
+            const rightPupil = document.getElementById('right-pupil');
+
+            window.addEventListener('mousemove', (e) => {
+                const rect = owl.getBoundingClientRect();
+                const owlCenterX = rect.left + rect.width / 2;
+                const owlCenterY = rect.top + rect.height / 2;
+                const angle = Math.atan2(e.clientY - owlCenterY, e.clientX - owlCenterX);
+                const maxRadius = 2.2; 
+                const moveX = Math.cos(angle) * maxRadius;
+                const moveY = Math.sin(angle) * maxRadius;
+
+                leftPupil.setAttribute('cx', 23 + moveX);
+                leftPupil.setAttribute('cy', 30 + moveY);
+                rightPupil.setAttribute('cx', 41 + moveX);
+                rightPupil.setAttribute('cy', 30 + moveY);
+            });
+        }
+
+        async function loadDailyRiddle() {
+            document.getElementById('section-title').innerText = "Riddle of the Day";
+            speedRunQueue = [];
+            try {
+                const response = await fetch('http://127.0.0.1:8000/daily-riddle/');
+                const data = await response.json();
+                setRiddleData(data);
+                resetGameUI();
+            } catch (error) {
+                document.getElementById('riddle-text').innerHTML = "<span style='color:#f87171'>Backend offline. Run uvicorn!</span>";
+            }
+        }
+
+        async function fetchRandomRiddle() {
+            document.getElementById('section-title').innerText = "Random Challenge";
+            speedRunQueue = [];
+            try {
+                const response = await fetch('http://127.0.0.1:8000/random-riddle/');
+                const data = await response.json();
+                setRiddleData(data);
+                resetGameUI();
+            } catch (error) {
+                alert("Could not fetch random riddle.");
+            }
+        }
+
+        async function fetchSpeedRun() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/speedrun-riddles/');
+                speedRunQueue = await response.json();
+                if (speedRunQueue.length > 0) {
+                    speedRunScoreTotal = 0;
+                    document.getElementById('section-title').innerText = "⚡ SpeedRun Mode (3 Puzzles)";
+                    loadNextSpeedRun();
+                }
+            } catch (error) {
+                alert("Could not start SpeedRun.");
+            }
+        }
+
+        function loadNextSpeedRun() {
+            if (speedRunQueue.length === 0) {
+                alert(`SpeedRun Complete! Total Bonus Earned: ${speedRunScoreTotal} pts`);
+                submitAutoScore(speedRunScoreTotal);
+                loadDailyRiddle();
+                return;
+            }
+            const current = speedRunQueue.shift();
+            setRiddleData(current);
+            resetGameUI();
+        }
+
+        function setRiddleData(data) {
+            document.getElementById('riddle-text').innerText = data.question;
+            currentCorrectAnswer = data.answer.toLowerCase();
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = option;
+                btn.onclick = () => selectAnswer(option, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function resetGameUI() {
+            timeLeft = 15;
+            isAnswered = false;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('time-display').innerText = timeLeft;
+            startTimer();
+        }
+
+        function startTimer() {
+            if (timerInterval || isAnswered) return;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time-display').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    disableOptions();
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(selectedOption, btnElement) {
+            if (isAnswered || timeLeft <= 0) return;
+            
+            if (selectedOption.toLowerCase() === currentCorrectAnswer) {
+                isAnswered = true;
+                clearInterval(timerInterval);
+                btnElement.classList.add('correct');
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+
+                const points = 100 + (timeLeft * 5);
+                if (speedRunQueue.length >= 0 && document.getElementById('section-title').innerText.includes("SpeedRun")) {
+                    speedRunScoreTotal += points;
+                    setTimeout(() => loadNextSpeedRun(), 1500);
+                } else {
+                    submitAutoScore(points);
+                }
+                disableOptions();
+            } else {
+                btnElement.classList.add('wrong');
+                setTimeout(() => btnElement.classList.remove('wrong'), 500);
+            }
+        }
+
+        function disableOptions() {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.style.pointerEvents = 'none');
+        }
+
+        async function submitAutoScore(points) {
+            localStorage.setItem('spark_best_score', points);
+            try {
+                const response = await fetch('http://127.0.0.1:8000/submit-score/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser, score: points })
+                });
+                if (response.ok) {
+                    loadLeaderboard();
+                    loadUserStats();
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/leaderboard/');
+                const data = await response.json();
+                const list = document.getElementById('leaderboard-list');
+                list.innerHTML = '';
+                if(data.length === 0) {
+                    list.innerHTML = '<li style="justify-content: center;">No scores yet. Be first!</li>';
+                    return;
+                }
+                data.forEach((player, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<div><span class="rank">#${index + 1}</span> ${player.username}</div><div class="score">${player.score} pts</div>`;
+                    list.appendChild(li);
+                });
+            } catch (error) { document.getElementById('leaderboard-list').innerHTML = '<li style="color:#f87171">Offline</li>'; }
+        }
+
+        function checkStreak() {
+            const lastDate = localStorage.getItem('spark_last_date');
+            let streak = parseInt(localStorage.getItem('spark_streak') || '0');
+            const today = new Date().toDateString();
+
+            if (lastDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastDate === yesterday.toDateString()) {
+                    streak += 1;
+                } else if (!lastDate) {
+                    streak = 1;
+                } else {
+                    streak = 1;
+                }
+                localStorage.setItem('spark_last_date', today);
+                localStorage.setItem('spark_streak', streak);
+            }
+            document.getElementById('stat-streak').innerText = `${streak} Days`;
+        }
+
+        function loadUserStats() {
+            const bestScore = localStorage.getItem('spark_best_score') || '0';
+            document.getElementById('stat-my-score').innerText = `${bestScore} pts`;
+        }
+
+        async function submitUserRiddle() {
+            const question = document.getElementById('new-question').value.trim();
+            const answer = document.getElementById('new-answer').value.trim();
+            if(!question || !answer) {
+                alert("Please fill all fields.");
+                return;
+            }
+            try {
+                const response = await fetch('http://127.0.0.1:8000/submit-riddle/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ creator: currentUser, question, answer })
+                });
+                if(response.ok) {
+                    alert("Thank you! Your riddle has been published.");
+                    document.getElementById('new-question').value = '';
+                    document.getElementById('new-answer').value = '';
+                }
+            } catch (error) { alert("Error submitting riddle."); }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'light') {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('spark_theme', 'dark');
+            } else {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('spark_theme', 'light');
+            }
+        }
+    </script>
+</body>
+</html>
