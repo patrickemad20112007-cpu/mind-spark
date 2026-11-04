@@ -330,7 +330,7 @@
             document.getElementById('section-title').innerText = "Random Challenge";
             speedRunQueue = [];
             try {
-                const response = await fetch('http://127.0.0.1:8000/random-riddle/');
+                const response = await fetch('https://mind-spark-production.up.railway.app/random-riddle/');
                 const data = await response.json();
                 setRiddleData(data);
                 resetGameUI();
@@ -341,7 +341,7 @@
 
         async function fetchSpeedRun() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/speedrun-riddles/');
+                const response = await fetch('https://mind-spark-production.up.railway.app/speedrun-riddles/');
                 speedRunQueue = await response.json();
                 if (speedRunQueue.length > 0) {
                     speedRunScoreTotal = 0;
@@ -435,7 +435,7 @@
         async function submitAutoScore(points) {
             localStorage.setItem('spark_best_score', points);
             try {
-                const response = await fetch('http://127.0.0.1:8000/submit-score/', {
+                const response = await fetch('https://mind-spark-production.up.railway.app/submit-score/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: currentUser, score: points })
@@ -449,7 +449,7 @@
 
         async function loadLeaderboard() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/leaderboard/');
+                const response = await fetch('https://mind-spark-production.up.railway.app/leaderboard/');
                 const data = await response.json();
                 const list = document.getElementById('leaderboard-list');
                 list.innerHTML = '';
