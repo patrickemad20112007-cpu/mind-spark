@@ -317,7 +317,7 @@
             document.getElementById('section-title').innerText = "Riddle of the Day";
             speedRunQueue = [];
             try {
-                const response = await fetch('http://127.0.0.1:8000/daily-riddle/');
+                const response = await fetch('https://mind-spark-production.up.railway.app');
                 const data = await response.json();
                 setRiddleData(data);
                 resetGameUI();
@@ -492,37 +492,27 @@
             document.getElementById('stat-my-score').innerText = `${bestScore} pts`;
         }
 
-        async function submitUserRiddle() {
-            const question = document.getElementById('new-question').value.trim();
-            const answer = document.getElementById('new-answer').value.trim();
-            if(!question || !answer) {
-                alert("Please fill all fields.");
-                return;
-            }
-            try {
-                const response = await fetch('http://127.0.0.1:8000/submit-riddle/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ creator: currentUser, question, answer })
-                });
-                if(response.ok) {
-                    alert("Thank you! Your riddle has been published.");
-                    document.getElementById('new-question').value = '';
-                    document.getElementById('new-answer').value = '';
-                }
-            } catch (error) { alert("Error submitting riddle."); }
+     async function submitUserRiddle() {
+    const question = document.getElementById('new-question').value.trim();
+    const answer = document.getElementById('new-answer').value.trim();
+    if(!question || !answer) {
+        alert("Please fill all fields.");
+        return;
+    }
+    try {
+        const response = await fetch('https://mind-spark-production.up.railway.app/submit-riddle/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ creator: currentUser, question, answer })
+        });
+        if(response.ok) {
+            alert("Thank you! Your riddle has been published.");
+            document.getElementById('new-question').value = '';
+            document.getElementById('new-answer').value = '';
         }
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            if (html.getAttribute('data-theme') === 'light') {
-                html.removeAttribute('data-theme');
-                localStorage.setItem('spark_theme', 'dark');
-            } else {
-                html.setAttribute('data-theme', 'light');
-                localStorage.setItem('spark_theme', 'light');
-            }
-        }
+    } catch (error) { alert("Error submitting riddle."); }
+}
+        
     </script>
 </body>
 </html>
