@@ -7,6 +7,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import date
 import random
 
+# رابط الداتا بيز بتاعك
 SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://neondb_owner:npg_4jBo3gbDXcRy@ep-icy-band-bezmw8ou-pooler.c-9.us-east-2.aws.neon.tech/neondb?sslmode=require"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
@@ -46,6 +47,11 @@ class RiddleSubmit(BaseModel):
     creator: str
     question: str
     answer: str
+
+# موديل جديد عشان يستقبل الاسم القديم والجديد
+class NameChange(BaseModel):
+    old_name: str
+    new_name: str
 
 RIDDLES = [
     {
@@ -131,6 +137,25 @@ def submit_riddle(data: RiddleSubmit):
     db = SessionLocal()
     new_riddle = UserRiddle(creator=data.creator, question=data.question, answer=data.answer)
     db.add(new_riddle)
+    db.commit()
+    db.close()
+    return {"status": "success"}
+
+# المسار الجديد اللي بيغير الاسم في الداتا بيز كلها
+@app.post("/update-username/")
+def update_username(data: NameChange):
+    db = SessionLocal()
+    
+    # 1. تغيير الاسم في جدول الاسكور
+    player = db.query(PlayerScore).filter(PlayerScore.username == data.old_name).first()
+    if player:
+        player.username = data.new_name
+        
+    # 2. تغيير الاسم في الفوازير اللي كان باعتها
+    user_riddles = db.query(UserRiddle).filter(UserRiddle.creator == data.old_name).all()
+    for riddle in user_riddles:
+        riddle.creator = data.new_name
+        
     db.commit()
     db.close()
     return {"status": "success"}
