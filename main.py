@@ -7,7 +7,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import date
 import random
 
-SQLALCHEMY_DATABASE_URL = "postgresql://neondb_owner:npg_4jBo3gbDXcRy@ep-icy-band-bezmw8ou-pooler.c-9.us-east-2.aws.neon.tech/neondb?sslmode=require"
+SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://neondb_owner:npg_4jBo3gbDXcRy@ep-icy-band-bezmw8ou-pooler.c-9.us-east-2.aws.neon.tech/neondb?sslmode=require"
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -133,7 +134,7 @@ def submit_riddle(data: RiddleSubmit):
     db.commit()
     db.close()
     return {"status": "success"}
-# المسار ده عشان تشوف كل الفوازير اللي الناس بعتتها
+
 @app.get("/admin/riddles/")
 def view_submitted_riddles():
     db = SessionLocal()
@@ -141,7 +142,6 @@ def view_submitted_riddles():
     db.close()
     return [{"id": r.id, "creator": r.creator, "question": r.question, "answer": r.answer} for r in riddles]
 
-# المسار ده عشان تشوف كل اليوزرز اللي سجلوا ولعبوا والاسكور بتاعهم
 @app.get("/admin/users/")
 def view_users():
     db = SessionLocal()
