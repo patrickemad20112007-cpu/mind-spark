@@ -72,10 +72,11 @@ RIDDLES = [
         "options": ["piano", "keyboard", "map", "computer"]
     }
 ]
+from fastapi.responses import FileResponse
 
 @app.get("/")
 def read_root():
-    return {"message": "Spark Mind Pro Max Backend is running!"}
+    return FileResponse("index.html")
 
 @app.get("/daily-riddle/")
 def get_daily_riddle():
