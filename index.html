@@ -154,7 +154,7 @@
                 <a href="#riddle-section" id="nav-challenges" onclick="setActive('challenges')">Challenges</a>
                 <button class="link-btn" onclick="fetchSpeedRun()">⚡ SpeedRun</button>
                 <button class="link-btn" onclick="fetchRandomRiddle()">🎲 Random</button>
-                <div class="user-badge">👤 <span id="user-display"></span></div>
+                <div class="user-badge" style="cursor: pointer;" onclick="changeUsername()" title="Click to change name">👤 <span id="user-display"></span> ✏️</div>
                 <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
                 <a href="https://www.youtube.com/channel/UCuYDFIBxxCAq5Ly0nxFzFrg" target="_blank" class="youtube-btn">▶ YouTube</a>
@@ -254,6 +254,17 @@
         function handleLogout() {
             localStorage.removeItem('spark_current_user');
             location.reload();
+        }
+
+        function changeUsername() {
+            const newName = prompt("Enter your new username:", currentUser);
+            if (newName && newName.trim() !== "" && newName !== currentUser) {
+                currentUser = newName.trim();
+                localStorage.setItem('spark_current_user', currentUser);
+                document.getElementById('user-display').innerText = currentUser;
+                document.getElementById('creator-input').value = currentUser;
+                alert("Username updated successfully! 🚀");
+            }
         }
 
         function startPlatform() {
