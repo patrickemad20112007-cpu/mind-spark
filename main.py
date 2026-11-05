@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -35,6 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 class ScoreSubmit(BaseModel):
     username: str
     score: int
@@ -44,7 +46,6 @@ class RiddleSubmit(BaseModel):
     question: str
     answer: str
 
-# تحديث الفوازير لتشمل الاختيارات (Options)
 RIDDLES = [
     {
         "question": "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", 
@@ -72,7 +73,6 @@ RIDDLES = [
         "options": ["piano", "keyboard", "map", "computer"]
     }
 ]
-from fastapi.responses import FileResponse
 
 @app.get("/")
 def read_root():
@@ -132,4 +132,4 @@ def submit_riddle(data: RiddleSubmit):
     db.add(new_riddle)
     db.commit()
     db.close()
-    return {"status": "success", "message": "Riddle submitted successfully!"}
+    return {"status": "success"}
