@@ -133,3 +133,18 @@ def submit_riddle(data: RiddleSubmit):
     db.commit()
     db.close()
     return {"status": "success"}
+# المسار ده عشان تشوف كل الفوازير اللي الناس بعتتها
+@app.get("/admin/riddles/")
+def view_submitted_riddles():
+    db = SessionLocal()
+    riddles = db.query(UserRiddle).all()
+    db.close()
+    return [{"id": r.id, "creator": r.creator, "question": r.question, "answer": r.answer} for r in riddles]
+
+# المسار ده عشان تشوف كل اليوزرز اللي سجلوا ولعبوا والاسكور بتاعهم
+@app.get("/admin/users/")
+def view_users():
+    db = SessionLocal()
+    users = db.query(PlayerScore).all()
+    db.close()
+    return [{"id": u.id, "username": u.username, "score": u.score} for u in users]
