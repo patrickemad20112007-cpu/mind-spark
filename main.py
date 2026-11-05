@@ -142,15 +142,12 @@ def submit_riddle(data: RiddleSubmit):
 @app.post("/update-username/")
 def update_username(data: NameChange):
     db = SessionLocal()
-    
     player = db.query(PlayerScore).filter(PlayerScore.username == data.old_name).first()
     if player:
         player.username = data.new_name
-        
     user_riddles = db.query(UserRiddle).filter(UserRiddle.creator == data.old_name).all()
     for riddle in user_riddles:
         riddle.creator = data.new_name
-        
     db.commit()
     db.close()
     return {"status": "success"}
@@ -168,3 +165,15 @@ def view_users():
     users = db.query(PlayerScore).all()
     db.close()
     return [{"id": u.id, "username": u.username, "score": u.score} for u in users]
+
+@app.get("/admin/delete-user/{username}")
+def delete_user(username: str):
+    db = SessionLocal()
+    player = db.query(PlayerScore).filter(PlayerScore.username == username).first()
+    if player:
+        db.delete(player)
+        db.commit()
+        db.close()
+        return {"status": f"Done! User '{username}' has been deleted."}
+    db.close()
+    return {"status": f"User '{username}' not found."}
