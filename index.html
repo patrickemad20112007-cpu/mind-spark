@@ -253,7 +253,6 @@
             location.reload();
         }
 
-        // الدالة الجديدة اللي بتغير الاسم في الداتا بيز
         async function changeUsername() {
             const newName = prompt("Enter your new username:", currentUser);
             if (newName && newName.trim() !== "" && newName !== currentUser) {
@@ -273,7 +272,7 @@
                         document.getElementById('user-display').innerText = currentUser;
                         document.getElementById('creator-input').value = currentUser;
                         alert("Username updated successfully! 🚀");
-                        loadLeaderboard(); // نحدث اللوحة عشان يظهر بالاسم الجديد بنفس الاسكور
+                        loadLeaderboard();
                     } else {
                         alert("Error updating username on server.");
                     }
